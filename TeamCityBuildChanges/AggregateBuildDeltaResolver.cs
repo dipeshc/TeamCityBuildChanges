@@ -107,7 +107,7 @@ namespace TeamCityBuildChanges
             if (!String.IsNullOrEmpty(from) && !String.IsNullOrEmpty(to) && !String.IsNullOrEmpty(buildWithCommitData))
             {
                 changeManifest.GenerationLog.Add(new LogEntry(DateTime.Now, Status.Ok, "Getting builds based on BuildType"));
-                var builds = _api.GetBuildsByBuildType(buildWithCommitData, branchName);
+				var builds = GetAllBuildsUntilVersion (buildWithCommitData, branchName, from);
                 if (builds != null)
                 {
                     var buildList = builds as List<Build> ?? builds.ToList();
@@ -208,6 +208,34 @@ namespace TeamCityBuildChanges
 
             return changeManifest;
         }
+
+		public IEnumerable<Build> GetAllBuildsUntilVersion(string buildType, string branchName, string version)
+		{
+			const int take = 100;
+			var position = 0;
+			var builds = new List<Build> ();
+
+			while (true)
+			{
+				var pagedBuildResult = _api.GetBuildsByBuildType (buildType, branchName, position, take).ToList ();
+
+				if (pagedBuildResult == null || !pagedBuildResult.Any ())
+					break;
+
+				var theFromBuild = pagedBuildResult.FirstOrDefault (build => build.Number == version);
+				if (theFromBuild != null)
+				{
+					builds.AddRange (pagedBuildResult.TakeWhile (build => build.Number != version));
+					builds.Add (theFromBuild);
+					break;
+				}
+
+				builds.AddRange (pagedBuildResult);
+				position += take;
+			}
+
+			return builds;
+		}
 
         private string ResolveToVersion(string buildType, string branchName = null)
         {

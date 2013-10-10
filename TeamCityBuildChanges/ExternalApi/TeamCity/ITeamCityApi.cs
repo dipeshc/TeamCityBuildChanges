@@ -25,6 +25,6 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
         BuildDetails GetBuildDetailsByBuildId(string id);
         ChangeList GetChangeListByBuildId(string id);
         ChangeDetail GetChangeDetailsByChangeId(string id);
-        IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null);
+		IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null, int start = 0, int count = 100);
     }
 }

@@ -290,18 +290,18 @@ namespace TeamCityBuildChanges.ExternalApi.TeamCity
                 });
         }
 
-        public IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null)
+		public IEnumerable<Build> GetBuildsByBuildType(string buildType, string branchName = null, int start = 0, int count = 100)
         {
             return _cache.GetFromCacheOrFunc(buildType, branchName, (key1, key2) =>
                 {
                     RestRequest request;
                     if (string.IsNullOrEmpty(branchName))
                     {
-                        request = GetXmlBuildRequest("app/rest/builds/?locator=buildType:{ID}", "ID", buildType);
+						request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0}&start={1}&count={2}", buildType, start, count));
                     }
                     else
                     {
-                        request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{{ID}},branch:(name:{0})", branchName), "ID", buildType);
+						request = GetXmlBuildRequest(string.Format("app/rest/builds/?locator=buildType:{0},branch:(name:{1})&start={2}&count={3}", buildType, branchName, start, count));
                     }
                     var response = _client.Execute<List<Build>>(request);
                     return response.Data;
