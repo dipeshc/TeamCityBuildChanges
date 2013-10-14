@@ -9,6 +9,7 @@ using TeamCityBuildChanges.ExternalApi.TeamCity;
 using TeamCityBuildChanges.IssueDetailResolvers;
 using TeamCityBuildChanges.NuGetPackage;
 using TeamCityBuildChanges.Output;
+using LazyEnumerable;
 
 namespace TeamCityBuildChanges
 {
@@ -211,30 +212,12 @@ namespace TeamCityBuildChanges
 
 		public IEnumerable<Build> GetAllBuildsUntilVersion(string buildType, string branchName, string version)
 		{
-			const int take = 100;
-			var position = 0;
-			var builds = new List<Build> ();
-
-			while (true)
+			var builds = new LazyEnumerable<Build> (10, (position, take) =>
 			{
-				var pagedBuildResult = _api.GetBuildsByBuildType (buildType, branchName, position, take).ToList ();
+				return _api.GetBuildsByBuildType (buildType, branchName, position, take);
+			});
 
-				if (pagedBuildResult == null || !pagedBuildResult.Any ())
-					break;
-
-				var theFromBuild = pagedBuildResult.FirstOrDefault (build => build.Number == version);
-				if (theFromBuild != null)
-				{
-					builds.AddRange (pagedBuildResult.TakeWhile (build => build.Number != version));
-					builds.Add (theFromBuild);
-					break;
-				}
-
-				builds.AddRange (pagedBuildResult);
-				position += take;
-			}
-
-			return builds;
+			return builds.TakeWhile (build => build.Number != version);
 		}
 
         private string ResolveToVersion(string buildType, string branchName = null)

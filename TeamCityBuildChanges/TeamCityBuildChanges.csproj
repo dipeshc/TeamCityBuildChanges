@@ -132,6 +132,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="LazyEnumerable">
+      <HintPath>..\packages\LazyEnumerable.1.0.0\lib\net35\LazyEnumerable.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\GenerateCommand.cs" />
